@@ -1,0 +1,10 @@
+#SET(main_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/main/main.cpp)
+
+#add_executable(HH08_App ${main_SRCS})
+
+#install (TARGETS HH08_App DESTINATION bin)
+
+ADD_SUBDIRECTORY(main)
+ADD_SUBDIRECTORY(matrix)
+ADD_SUBDIRECTORY(imgChannel)
+ADD_SUBDIRECTORY(imgPxl)
