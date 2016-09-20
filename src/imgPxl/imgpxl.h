@@ -48,7 +48,7 @@ public:
   inline const matrix<T>& getPixels() const {return &_pixels; }
 
   //operators
-  imgPxl<T> & imgPxl<T>
+  imgPxl & operator=(const imgPxl&);
 
 private:
   matrix<T> _pixels;
