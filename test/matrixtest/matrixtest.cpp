@@ -1,7 +1,6 @@
 #include <matrix.h>
-#include <matrixtest.h>
+#include "matrixtest.h"
 
-using ::testing::Return;
 
 matrixtest::matrixtest(){};
 

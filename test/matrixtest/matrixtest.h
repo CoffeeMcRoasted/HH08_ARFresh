@@ -17,5 +17,5 @@ protected:
   //Code called inmediately after each test
   virtual void TearDown();
 
-}
+};
 #endif // MATRIXTEST_H
