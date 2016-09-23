@@ -1,4 +1,5 @@
 file (GLOB SRCS *.cpp)
+configure_file(left1.png left1.png COPYONLY)
 
 add_executable(imagepxltest ${SRCS})
 

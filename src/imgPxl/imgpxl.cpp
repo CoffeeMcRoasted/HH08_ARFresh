@@ -23,11 +23,10 @@ imgPxl<T> & imgPxl<T>::operator = (const imgPxl &im){
 
 //only works if T is unsigned char
 //results in 4 bytes per pixel ordered RGBA
-/*
-template <typename T>
+
+/*template <typename T>
 void imgPxl<T>::loadImagePNG(const char* infile){
   unsigned error = lodepng::decode(_pixels.getVector(),_width,_height,infile);
   if (error) std::cout<<"decoder error "<< error << ": " <<
     lodepng_error_text(error)<<std::endl;
-}
-*/
+}*/

@@ -40,12 +40,16 @@ public:
 
   //Image Load from file
   void loadImagePNG(const char* infile){
-  /*std::vector<unsigned char> v;
-  unsigned error = lodepng::decode(v,_width,_height,infile);
+  std::vector<unsigned char> v;
+  unsigned int width , height;
+  unsigned error = lodepng::decode(v,width,height,infile);
   if (error) std::cout<<"decoder error "<< error << ": " <<
     lodepng_error_text(error)<<std::endl;
-  _pixels.getVector() = v;*/
-  }
+  this->setWidth(width);
+  this->setHeight(height);
+  _pixels.setVector(v);
+  std::cout << width<<" "<<height << std::endl;
+}
 
   //Pixel Matrix to Image
   //void returnImagePNG(const char* outfile);
@@ -66,8 +70,8 @@ public:
 
 private:
   matrix<T> _pixels;
-  int _height;
-  int _width;
-  int _channels;
+  unsigned int _height = 0;
+  unsigned int _width = 0;
+  unsigned int _channels = 0;
 };
 #endif // IMGPXL_H

@@ -19,11 +19,10 @@ TEST_F(imagepxltest, ComponentImgSizeTest){
 
 TEST_F(imagepxltest, ImageFetchTest){
   imgPxl<unsigned char> img;
-  /*
   img.loadImagePNG("left1.png");
-  EXPECT_EQ(img.getWidth(),768 );
+  EXPECT_EQ(img.getWidth(),768);
   EXPECT_EQ(img.getHeight(), 576);
   EXPECT_EQ(sizeof(img[0]), sizeof(unsigned char));
-  */
+
   //due to failure in the usage of decode, commented
 }

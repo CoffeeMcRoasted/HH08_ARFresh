@@ -41,7 +41,9 @@ public:
 
     const int getCols(){return _cols;}
     const int getRows(){return _rows;}
-    const std::vector<T>& getVector(){return &_vctr;}
+    std::vector<T>& getVector() const {return &_vctr;}
+
+    void setVector(const std::vector<T> v){_vctr = v;}
 
     void setRows(int r){_rows = r;}
     void setCols(int c){_cols = c;}
@@ -51,7 +53,7 @@ public:
 
 private:
     std::vector<T> _vctr;
-    //typename is to specify the compiler _ivctr is a type as vector<T> is not specified
+    //typename is there to specify the compiler _ivctr is a type as vector<T> is not specified
     typename std::vector<T>::iterator _ivctr = _vctr.begin();
     int _rows;
     int _cols;
