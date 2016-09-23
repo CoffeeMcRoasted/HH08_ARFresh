@@ -6,6 +6,7 @@ target_link_libraries(HH08_App
   lodepng
   matrix
   imgpxl
+  imgchannel
 )
 
 install(TARGETS HH08_App DESTINATION bin)

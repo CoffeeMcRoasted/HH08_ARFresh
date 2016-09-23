@@ -1,4 +1,4 @@
-# Script obtained from: 
+# Script obtained from:
 # https://github.com/kaizouman/gtest-cmake-example/blob/master/test/CMakeLists.txt
 
 find_package(Threads REQUIRED)
@@ -43,3 +43,4 @@ include_directories("${source_dir}/googletest/include"
                     "${source_dir}/googlemock/include")
 
 add_subdirectory(matrixtest)
+add_subdirectory(imagepxltest)

@@ -13,6 +13,6 @@ void matrixtest::TearDown() {};
 //Tests
 
 TEST_F(matrixtest, ComponentMatrixSizeTest){
-  matrix<char> mat;
-  EXPECT_EQ(sizeof(mat[0]),sizeof(char));
+  matrix<unsigned char> mat;
+  EXPECT_EQ(sizeof(mat[0]),sizeof(unsigned char));
 }
