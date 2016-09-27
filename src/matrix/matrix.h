@@ -41,14 +41,14 @@ public:
 
     const int getCols(){return _cols;}
     const int getRows(){return _rows;}
-    std::vector<T>& getVector() const {return &_vctr;}
+    const std::vector<T>& getVector() const {return _vctr;}
 
-    void setVector(const std::vector<T> v){_vctr = v;}
+
 
     void setRows(int r){_rows = r;}
     void setCols(int c){_cols = c;}
     void setSize(int r, int c){_rows = r; _cols = c;}
-
+    void setVector(const std::vector<T> v){_vctr = v;}
     void resize(){_vctr.resize(sizeof(T)*_rows*_cols);}
 
 private:

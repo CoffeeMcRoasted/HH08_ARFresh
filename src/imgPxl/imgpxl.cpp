@@ -39,3 +39,17 @@ _pixels.setVector(v);
 //solution to linking error as suggested in:
 //https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
 template void imgPxl<unsigned char>::loadImagePNG(const char* infile);
+
+template <typename T>
+void imgPxl<T>::returnImagePNG(const char* outfile){
+  std::vector<unsigned char> v = this->getPixels().getVector();
+  unsigned int width = this->getWidth();
+  unsigned int height = this->getHeight();
+  unsigned error = lodepng::encode(outfile, v, width,height);
+  if(error) std::cout << "encoder error " << error << ": "
+    << lodepng_error_text(error) << std::endl;
+}
+
+//solution to linking error as suggested in:
+//https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template void imgPxl<unsigned char>::returnImagePNG(const char* outfile);

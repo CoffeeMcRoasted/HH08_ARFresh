@@ -39,20 +39,10 @@ public:
   ~imgPxl(){}
 
   //Image Load from file
-  void loadImagePNG(const char* infile)/*{
-  std::vector<unsigned char> v;
-  unsigned int width , height;
-  unsigned error = lodepng::decode(v,width,height,infile);
-  if (error) std::cout<<"decoder error "<< error << ": " <<
-    lodepng_error_text(error)<<std::endl;
-  this->setWidth(width);
-  this->setHeight(height);
-  _pixels.setVector(v);
-  std::cout << width<<" "<<height << std::endl;
-}*/;
+  void loadImagePNG(const char* infile);
 
   //Pixel Matrix to Image
-  //void returnImagePNG(const char* outfile);
+  void returnImagePNG(const char* outfile);
 
   inline void setHeight(int h){_height = h;}
   inline void setWidth(int w){_width = w;}
@@ -60,7 +50,7 @@ public:
   inline const int getHeight() const {return _height;}
   inline const int getWidth() const {return _width;}
   inline const int getChannels() const{return _channels;}
-  inline const matrix<T>& getPixels() const {return &_pixels;}
+  inline const matrix<T>& getPixels() const {return _pixels;}
 
   //operators
   imgPxl & operator=(const imgPxl&);
