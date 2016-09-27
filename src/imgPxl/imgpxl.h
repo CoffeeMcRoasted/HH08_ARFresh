@@ -39,7 +39,7 @@ public:
   ~imgPxl(){}
 
   //Image Load from file
-  void loadImagePNG(const char* infile){
+  void loadImagePNG(const char* infile)/*{
   std::vector<unsigned char> v;
   unsigned int width , height;
   unsigned error = lodepng::decode(v,width,height,infile);
@@ -49,7 +49,7 @@ public:
   this->setHeight(height);
   _pixels.setVector(v);
   std::cout << width<<" "<<height << std::endl;
-}
+}*/;
 
   //Pixel Matrix to Image
   //void returnImagePNG(const char* outfile);
