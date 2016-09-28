@@ -4,20 +4,21 @@
 //Copy
 template <typename T>
 matrix<T>::matrix(const matrix &mat){
-    this->_cols = mat.getCols();
-    this->_rows = mat.getRows();
-    this->_vctr = getVector();
+    _cols = mat.getCols();
+    _rows = mat.getRows();
+    _vctr = mat.getVector();
 }
 
 //operators
 //copy assingment
 template <typename T>
 matrix<T>& matrix<T>::operator =(const matrix & mat){
-    this->_cols = mat.getCols();
-    this->_rows = mat.getRows();
-    this->_vctr = getVector();
+    _cols = mat.getCols();
+    _rows = mat.getRows();
+    _vctr = mat.getVector();
     return *this;
 }
+template matrix<unsigned char>& matrix<unsigned char>::operator=(const matrix<unsigned char> & mat);
 //operator () for access and chage of values
 
 template <typename T>

@@ -44,3 +44,4 @@ include_directories("${source_dir}/googletest/include"
 
 add_subdirectory(matrixtest)
 add_subdirectory(imagepxltest)
+add_subdirectory(imagetest)

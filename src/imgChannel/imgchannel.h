@@ -23,18 +23,18 @@ public:
   ~imgChannel(){};
 
   //Image Load from file
-  virtual void loadImagePNG(const char* infile);
+  void loadImagePNG(const char* infile);
   //Image Channels to file
-  virtual void returnImagePNG(const char* outfile);
+  void returnImagePNG(const char* outfile);
 
   inline void setHeight(int h){_height = h;}
   inline void setWidth(int w){_width = w;}
   inline const int getHeight() const {return _height;}
   inline const int getWidth() const {return _width;}
 
-  inline const matrix<T>& getRed() const {return &_red; }
-  inline const matrix<T>& getGreen() const {return &_green; }
-  inline const matrix<T>& getBlue() const {return &_blue; }
+  inline const matrix<T>& getRed() const {return _red; }
+  inline const matrix<T>& getGreen() const {return _green; }
+  inline const matrix<T>& getBlue() const {return _blue; }
 
   //operators
   imgChannel & operator=(const imgChannel &);

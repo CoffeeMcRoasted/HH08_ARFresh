@@ -16,8 +16,7 @@ public:
     //constructors
     matrix():_rows{0}, _cols{0} {}
     matrix(int row, int col):_rows{row},_cols{col}{
-        int size = sizeof(T)*_rows*_cols;
-        _vctr.resize(size);
+        _vctr.resize(sizeof(T)*_rows*_cols);
     }
 
 
@@ -27,7 +26,7 @@ public:
     matrix(matrix&&);   //move constructor
     matrix& operator=(matrix&&);    //move assignment
 */
-    ~matrix(){} //destructor
+    virtual ~matrix(){} //destructor
 
     //operators
 
@@ -39,8 +38,8 @@ public:
     //for continous access of precalculated position direct accesss
     T& operator [](int n);
 
-    const int getCols(){return _cols;}
-    const int getRows(){return _rows;}
+    const int getCols() const {return _cols;}
+    const int getRows()const {return _rows;}
     const std::vector<T>& getVector() const {return _vctr;}
 
 
@@ -50,13 +49,20 @@ public:
     void setSize(int r, int c){_rows = r; _cols = c;}
     void setVector(const std::vector<T> v){_vctr = v;}
     void resize(){_vctr.resize(sizeof(T)*_rows*_cols);}
+    //Dangerous as it overrides the rows cols restrictions
+    void resize(int size){_vctr.resize(size);}
+    void resize(unsigned int rows, unsigned int cols){
+      _rows = rows;
+      _cols = cols;
+      _vctr.resize(sizeof(T)*_rows*_cols);
+    };
 
 private:
     std::vector<T> _vctr;
     //typename is there to specify the compiler _ivctr is a type as vector<T> is not specified
     typename std::vector<T>::iterator _ivctr = _vctr.begin();
-    int _rows;
-    int _cols;
+    unsigned int _rows = 0;
+    unsigned int _cols = 0;
 };
 
 #endif // MATRIX_H
