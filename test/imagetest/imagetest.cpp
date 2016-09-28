@@ -33,4 +33,6 @@ TEST_F(imagetest, ImageReturnTest){
   img2.getImagePNG("left1_test.png");
   EXPECT_EQ(img.getWidth(),img2.getWidth());
   EXPECT_EQ(img.getHeight(),img2.getHeight());
+  EXPECT_EQ(img.getChannels(),img2.getChannels());
+  EXPECT_EQ(img.getBitDepth(),img2.getBitDepth());
 }
