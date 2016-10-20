@@ -43,6 +43,10 @@ void image::getImagePNG(const char* infile){
   _data.setVector(image);
 }
 
+//NOTE:This function has yet to enable changes in colortype that
+// automatically change the image vector conatiner, such as
+// supressing alpha channels or getting a mean value to trasnlate the image
+// to greyscale
 void image::outputImagePNG(const char* outfile){
   lodepng::State state;
   state.info_png.color.bitdepth = _bitdepth;

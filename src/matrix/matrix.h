@@ -41,13 +41,15 @@ public:
     const int getCols() const {return _cols;}
     const int getRows()const {return _rows;}
     const std::vector<T>& getVector() const {return _vctr;}
+    decltype(_vctr)::iterator& getIterator() const{return _ivctr};
 
 
 
     void setRows(int r){_rows = r;}
     void setCols(int c){_cols = c;}
     void setSize(int r, int c){_rows = r; _cols = c;}
-    void setVector(const std::vector<T> v){_vctr = v;}
+    void setVector(const std::vector<T>& v){_vctr = v;}
+    void setIterator(const std::vector<T>::iterator it){_ivctr = it;}
     void resize(){_vctr.resize(sizeof(T)*_rows*_cols);}
     //Dangerous as it overrides the rows cols restrictions
     void resize(int size){_vctr.resize(size);}
@@ -60,7 +62,7 @@ public:
 private:
     std::vector<T> _vctr;
     //typename is there to specify the compiler _ivctr is a type as vector<T> is not specified
-    typename std::vector<T>::iterator _ivctr = _vctr.begin();
+    decltype(_vctr)::iterator _ivctr = _vctr.begin();
     unsigned int _rows = 0;
     unsigned int _cols = 0;
 };
