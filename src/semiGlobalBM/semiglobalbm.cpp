@@ -22,11 +22,7 @@ static void semiGlobalBM::pxlCostBT(const image img1, const image img2, int row,
   }
   int n1 = y > 0 ? -img1.getBitDepth()*width*channels/8 : 0, s1 = y < img1.getHeight()-1 ? img1.getBitDepth()*width*channels/8 : 0;
   int n2 = y > 0 ? -img2.getBitDepth()*width*channels/8 : 0, s2 = y < img2.getHeight()-1 ? img1.getBitDepth()*width*channels/8 : 0;
-M
-we associate a cost
-∞.
-M
-/
+
   if( channels == 1 )
     {
         for( x = 1; x < width-1; x++ )
@@ -40,24 +36,24 @@ M
     }
     else
     {
-        for( x = 1; x < width-1; x++ )
-        {
-            prowit1[x] = tabit[(rowit1[x*3+3] - rowit1[x*3-3])*2 + rowit1[x*3+n1+3] - rowit1[x*3+n1-3] + rowit1[x*3+s1+3] - rowit1[x*3+s1-3]];
-            prowit1[x+width] = tabit[(rowit1[x*3+4] - rowit1[x*3-2])*2 + rowit1[x*3+n1+4] - rowit1[x*3+n1-2] + rowit1[x*3+s1+4] - rowit1[x*3+s1-2]];
-            prowit1[x+width*2] = tabit[(rowit1[x*3+5] - rowit1[x*3-1])*2 + rowit1[x*3+n1+5] - rowit1[x*3+n1-1] + rowit1[x*3+s1+5] - rowit1[x*3+s1-1]];
+      for( x = 1; x < width-1; x++ )
+      {
+        prowit1[x] = tabit[(rowit1[x*3+3] - rowit1[x*3-3])*2 + rowit1[x*3+n1+3] - rowit1[x*3+n1-3] + rowit1[x*3+s1+3] - rowit1[x*3+s1-3]];
+        prowit1[x+width] = tabit[(rowit1[x*3+4] - rowit1[x*3-2])*2 + rowit1[x*3+n1+4] - rowit1[x*3+n1-2] + rowit1[x*3+s1+4] - rowit1[x*3+s1-2]];
+        prowit1[x+width*2] = tabit[(rowit1[x*3+5] - rowit1[x*3-1])*2 + rowit1[x*3+n1+5] - rowit1[x*3+n1-1] + rowit1[x*3+s1+5] - rowit1[x*3+s1-1]];
 
-            prowit2[width-1-x] = tabit[(rowit2[x*3+3] - rowit2[x*3-3])*2 + rowit2[x*3+n2+3] - rowit2[x*3+n2-3] + rowit2[x*3+s2+3] - rowit2[x*3+s2-3]];
-            prowit2[width-1-x+width] = tabit[(rowit2[x*3+4] - rowit2[x*3-2])*2 + rowit2[x*3+n2+4] - rowit2[x*3+n2-2] + rowit2[x*3+s2+4] - rowit2[x*3+s2-2]];
-            prowit2[width-1-x+width*2] = tabit[(rowit2[x*3+5] - rowit2[x*3-1])*2 + rowit2[x*3+n2+5] - rowit2[x*3+n2-1] + rowit2[x*3+s2+5] - rowit2[x*3+s2-1]];
+        prowit2[width-1-x] = tabit[(rowit2[x*3+3] - rowit2[x*3-3])*2 + rowit2[x*3+n2+3] - rowit2[x*3+n2-3] + rowit2[x*3+s2+3] - rowit2[x*3+s2-3]];
+        prowit2[width-1-x+width] = tabit[(rowit2[x*3+4] - rowit2[x*3-2])*2 + rowit2[x*3+n2+4] - rowit2[x*3+n2-2] + rowit2[x*3+s2+4] - rowit2[x*3+s2-2]];
+        prowit2[width-1-x+width*2] = tabit[(rowit2[x*3+5] - rowit2[x*3-1])*2 + rowit2[x*3+n2+5] - rowit2[x*3+n2-1] + rowit2[x*3+s2+5] - rowit2[x*3+s2-1]];
 
-            prowit1[x+width*3] = rowit1[x*3];
-            prowit1[x+width*4] = rowit1[x*3+1];
-            prowit1[x+width*5] = rowit1[x*3+2];
+        prowit1[x+width*3] = rowit1[x*3];
+        prowit1[x+width*4] = rowit1[x*3+1];
+        prowit1[x+width*5] = rowit1[x*3+2];
 
-            prowit2[width-1-x+width*3] = rowit2[x*3];
-            prowit2[width-1-x+width*4] = rowit2[x*3+1];
-            prowit2[width-1-x+width*5] = rowit2[x*3+2];
-        }
+        prowit2[width-1-x+width*3] = rowit2[x*3];
+        prowit2[width-1-x+width*4] = rowit2[x*3+1];
+        prowit2[width-1-x+width*5] = rowit2[x*3+2];
+      }
     }
 
   cost.resize(width1*D, 0);
