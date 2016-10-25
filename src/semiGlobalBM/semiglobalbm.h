@@ -7,11 +7,7 @@
  */
 
 #include "image.h"
-
-enum Mode{
-  MODE_SGBM = 1,
-  MODE_HH = 2
-}
+#include <climits>
 
 typedef unsigned char PxlType;
 typedef short CostType;
@@ -71,19 +67,23 @@ struct SADWindowSize{
 //obtained from stereomatcher code
 enum  	{
   DISPARITY_SHIFT = 4
-}
+};
 
 class semiGlobalBM{
   semiGlobalBM(){};
-  semiGlobalBM(const semiGlobalBMParams & params, const image & left, const image & right, const image & dispmap,matrix<unsigned char> & buffer);
+  semiGlobalBM(const semiGlobalBMParams & params, const image & left, const image & right, image & dispmap,std::vector<CostType> & buffer);
   ~semiGlobalBM(){};
+
+  enum Mode{
+    MODE_SGBM = 1,
+    MODE_HH = 2
+  };
 
   void outDispMap(const char* Outfile);
   void compute();
 
-  static void disparitySGBM(const image & img1, const image & img2, image disp1, const semiGlobalBMParams & params, std::vector<PxlType> & buffer );
-  static void pxlCostBT(const image img1, const image img2, int row, int minD, int maxD, std::vector<CostType> & cost,
-                        std::vector<PxlType> buffer, const std::vector<PxlType> lookupTab,int tabOfs);
+  void disparitySGBM(const image & img1, const image & img2, image & disp1, const semiGlobalBMParams & params, std::vector<PxlType> & buffer );
+  void pxlCostBT(const image & img1, const image & img2, int row, int minD, int maxD, std::vector<CostType> & cost,std::vector<PxlType> & buffer, const std::vector<PxlType> & lookupTab,int tabOfs);
   inline void getImagePNGRight(const char* infile){_right.getImagePNG(infile);}
   inline void getImagePNGLeft(const char* infile){_left.getImagePNG(infile);}
 

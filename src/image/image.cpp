@@ -18,6 +18,7 @@ image& image::operator=(const image& img){
   this->_channels = img.getChannels();
   this->_bitdepth = img.getBitDepth();
   this->_data = img.getData();
+  return *this;
 }
 
 //file constructor

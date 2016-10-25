@@ -1,60 +1,61 @@
 #include "semiglobalbm.h"
 
-static void semiGlobalBM::pxlCostBT(const image img1, const image img2, int row, int minD, int maxD, std::vector<CostType> & cost,
-                      std::vector<PxlType> buffer, const std::vector<PxlType> & lookupTab,int tabOfs){
+void semiGlobalBM::pxlCostBT(const image & img1, const image & img2, int row, int minD, int maxD, std::vector<CostType> & cost, std::vector<PxlType> & buffer, const std::vector<PxlType> & lookupTab,int tabOfs)
+{
   int x,c, width = img1.getWidth(), channels = img1.getChannels();
   int minX1 = std::max(maxD, 0), maxX1 = width + std::min(minD, 0);
   int minX2 = std::max(minX1 - maxD, 0), maxX2 = std::min(maxX1 - minD, width);
   int D = maxD - minD, width1 = maxX1 - minX1, width2 = maxX2 - minX2;
 
   //iterators preparation
-  std::vector<pxlType>::iterator rowit1 = img1.getData().getVector().begin() + row*width*channels;
-  std::vector<pxlType>::iterator rowit2 = img2.getData().getVector().begin() + row*width*channels;
-  std::vector<pxlType>::iterator prowit1 = buffer.begin() + width2*2;
-  std::vector<pxlType>::iterator prowit2 = prowit1 + width*channels*2;
-  std::vector<pxlType>::iterator buffit = buffer.begin();
+  std::vector<PxlType>::const_iterator rowit1 = img1.getData().getVector().cbegin() + row*width*channels;
+  std::vector<PxlType>::const_iterator rowit2 = img2.getData().getVector().cbegin() + row*width*channels;
+  std::vector<PxlType>::iterator prowit1 = buffer.begin() + width2*2;
+  std::vector<PxlType>::iterator prowit2 = prowit1 + width*channels*2;
+  std::vector<PxlType>::iterator buffit = buffer.begin();
   std::vector<CostType>::iterator costit = cost.begin();
 
-  std::vector<pxlType>::iterator tabit = lookupTab.begin() + tabOfs;
+  std::vector<PxlType>::const_iterator tabit = lookupTab.begin() + tabOfs;
 
-  for(c = 0; c<channels*2; c++){
+  for(c = 0; c<channels*2; c++)
+  {
     prowit1[width*c] = prowit1[width*c + width-1] = prowit2[width*c] = prowit2[width*c +width-1] =tabit[0];
   }
-  int n1 = y > 0 ? -img1.getBitDepth()*width*channels/8 : 0, s1 = y < img1.getHeight()-1 ? img1.getBitDepth()*width*channels/8 : 0;
-  int n2 = y > 0 ? -img2.getBitDepth()*width*channels/8 : 0, s2 = y < img2.getHeight()-1 ? img1.getBitDepth()*width*channels/8 : 0;
+  int n1 = row > 0 ? -img1.getBitDepth()*width*channels/8 : 0, s1 = row < img1.getHeight()-1 ? img1.getBitDepth()*width*channels/8 : 0;
+  int n2 = row > 0 ? -img2.getBitDepth()*width*channels/8 : 0, s2 = row < img2.getHeight()-1 ? img1.getBitDepth()*width*channels/8 : 0;
 
   if( channels == 1 )
+  {
+    for( x = 1; x < width-1; x++ )
     {
-        for( x = 1; x < width-1; x++ )
-        {
-            prowit1[x] = tabit[(rowit1[x+1] - rowit1[x-1])*2 + rowit1[x+n1+1] - rowit1[x+n1-1] + rowit1[x+s1+1] - rowit1[x+s1-1]];
-            prowit2[width-1-x] = tabit[(rowit2[x+1] - rowit2[x-1])*2 + rowit2[x+n2+1] - rowit2[x+n2-1] + rowit2[x+s2+1] - rowit2[x+s2-1]];
+        prowit1[x] = tabit[(rowit1[x+1] - rowit1[x-1])*2 + rowit1[x+n1+1] - rowit1[x+n1-1] + rowit1[x+s1+1] - rowit1[x+s1-1]];
+        prowit2[width-1-x] = tabit[(rowit2[x+1] - rowit2[x-1])*2 + rowit2[x+n2+1] - rowit2[x+n2-1] + rowit2[x+s2+1] - rowit2[x+s2-1]];
 
-            prowit1[x+width] = rowit1[x];
-            prowit2[width-1-x+width] = rowit2[x];
-        }
+        prowit1[x+width] = rowit1[x];
+        prowit2[width-1-x+width] = rowit2[x];
     }
-    else
+  }
+  else
+  {
+    for( x = 1; x < width-1; x++ )
     {
-      for( x = 1; x < width-1; x++ )
-      {
-        prowit1[x] = tabit[(rowit1[x*3+3] - rowit1[x*3-3])*2 + rowit1[x*3+n1+3] - rowit1[x*3+n1-3] + rowit1[x*3+s1+3] - rowit1[x*3+s1-3]];
-        prowit1[x+width] = tabit[(rowit1[x*3+4] - rowit1[x*3-2])*2 + rowit1[x*3+n1+4] - rowit1[x*3+n1-2] + rowit1[x*3+s1+4] - rowit1[x*3+s1-2]];
-        prowit1[x+width*2] = tabit[(rowit1[x*3+5] - rowit1[x*3-1])*2 + rowit1[x*3+n1+5] - rowit1[x*3+n1-1] + rowit1[x*3+s1+5] - rowit1[x*3+s1-1]];
+      prowit1[x] = tabit[(rowit1[x*3+3] - rowit1[x*3-3])*2 + rowit1[x*3+n1+3] - rowit1[x*3+n1-3] + rowit1[x*3+s1+3] - rowit1[x*3+s1-3]];
+      prowit1[x+width] = tabit[(rowit1[x*3+4] - rowit1[x*3-2])*2 + rowit1[x*3+n1+4] - rowit1[x*3+n1-2] + rowit1[x*3+s1+4] - rowit1[x*3+s1-2]];
+      prowit1[x+width*2] = tabit[(rowit1[x*3+5] - rowit1[x*3-1])*2 + rowit1[x*3+n1+5] - rowit1[x*3+n1-1] + rowit1[x*3+s1+5] - rowit1[x*3+s1-1]];
 
-        prowit2[width-1-x] = tabit[(rowit2[x*3+3] - rowit2[x*3-3])*2 + rowit2[x*3+n2+3] - rowit2[x*3+n2-3] + rowit2[x*3+s2+3] - rowit2[x*3+s2-3]];
-        prowit2[width-1-x+width] = tabit[(rowit2[x*3+4] - rowit2[x*3-2])*2 + rowit2[x*3+n2+4] - rowit2[x*3+n2-2] + rowit2[x*3+s2+4] - rowit2[x*3+s2-2]];
-        prowit2[width-1-x+width*2] = tabit[(rowit2[x*3+5] - rowit2[x*3-1])*2 + rowit2[x*3+n2+5] - rowit2[x*3+n2-1] + rowit2[x*3+s2+5] - rowit2[x*3+s2-1]];
+      prowit2[width-1-x] = tabit[(rowit2[x*3+3] - rowit2[x*3-3])*2 + rowit2[x*3+n2+3] - rowit2[x*3+n2-3] + rowit2[x*3+s2+3] - rowit2[x*3+s2-3]];
+      prowit2[width-1-x+width] = tabit[(rowit2[x*3+4] - rowit2[x*3-2])*2 + rowit2[x*3+n2+4] - rowit2[x*3+n2-2] + rowit2[x*3+s2+4] - rowit2[x*3+s2-2]];
+      prowit2[width-1-x+width*2] = tabit[(rowit2[x*3+5] - rowit2[x*3-1])*2 + rowit2[x*3+n2+5] - rowit2[x*3+n2-1] + rowit2[x*3+s2+5] - rowit2[x*3+s2-1]];
 
-        prowit1[x+width*3] = rowit1[x*3];
-        prowit1[x+width*4] = rowit1[x*3+1];
-        prowit1[x+width*5] = rowit1[x*3+2];
+      prowit1[x+width*3] = rowit1[x*3];
+      prowit1[x+width*4] = rowit1[x*3+1];
+      prowit1[x+width*5] = rowit1[x*3+2];
 
-        prowit2[width-1-x+width*3] = rowit2[x*3];
-        prowit2[width-1-x+width*4] = rowit2[x*3+1];
-        prowit2[width-1-x+width*5] = rowit2[x*3+2];
-      }
+      prowit2[width-1-x+width*3] = rowit2[x*3];
+      prowit2[width-1-x+width*4] = rowit2[x*3+1];
+      prowit2[width-1-x+width*5] = rowit2[x*3+2];
     }
+  }
 
   cost.resize(width1*D, 0);
   //simplfy costs within the lookupTab
@@ -62,46 +63,46 @@ static void semiGlobalBM::pxlCostBT(const image img1, const image img2, int row,
   costit -= minX1*D + minD;
 
 
-  for( c = 0; c < cn*2; c++, prow1 += width, prow2 += width )
+  for( c = 0; c < channels*2; c++, prowit1 += width, prowit2 += width )
+  {
+    int diff_scale = c < channels ? 0 : 2;
+    // precompute
+    //   v0 = min(row2[x-1/2], row2[x], row2[x+1/2]) and
+    //   v1 = max(row2[x-1/2], row2[x], row2[x+1/2]) and
+    for( x = minX2; x < maxX2; x++ )
     {
-        int diff_scale = c < cn ? 0 : 2;
-
-        // precompute
-        //   v0 = min(row2[x-1/2], row2[x], row2[x+1/2]) and
-        //   v1 = max(row2[x-1/2], row2[x], row2[x+1/2]) and
-        for( x = minX2; x < maxX2; x++ )4:15 horas. Destino U-ta
-        {
-            int v = prowit2[x];
-            int vl = x > 0 ? (v + prowit2[x-1])/2 : v;
-            int vr = x < width-1 ? (v + prowit2[x+1])/2 : v;
-            int v0 = std::min(vl, vr); v0 = std::min(v0, v);
-            int v1 = std::max(vl, vr); v1 = std::max(v1, v);
-            bufferit[x] = static_cast<pxlType> v0;
-            bufferit[x + width2] = static_cast<pxlType> v1;
-        }
-
-        for( x = minX1; x < maxX1; x++ )
-        {
-            int u = prowit1[x];
-            int ul = x > 0 ? (u + prowit1[x-1])/2 : u;
-            int ur = x < width-1 ? (u + prowit1[x+1])/2 : u;
-            int u0 = std::min(ul, ur); u0 = std::min(u0, u);
-            int u1 = std::max(ul, ur); u1 = std::max(u1, u);
-
-            for( int d = minD; d < maxD; d++ ){
-               int v = prowit2[width-x-1 + d];
-               int v0 = buffit[width-x-1 + d];
-               int v1 = buffit[width-x-1 + d + width2];
-               int c0 = std::max(0, u - v1); c0 = std::max(c0, v0 - u);
-               int c1 = std::max(0, v - u1); c1 = std::max(c1, u0 - v);
-
-               costit[x*D + d] = static_cast<short>(cost[x*D+d] + (std::min(c0, c1) >> diff_scale));
-             }
-          }
+        int v = prowit2[x];
+        int vl = x > 0 ? (v + prowit2[x-1])/2 : v;
+        int vr = x < width-1 ? (v + prowit2[x+1])/2 : v;
+        int v0 = std::min(vl, vr); v0 = std::min(v0, v);
+        int v1 = std::max(vl, vr); v1 = std::max(v1, v);
+        buffit[x] = static_cast<PxlType>(v0);
+        buffit[x + width2] = static_cast<PxlType>(v1);
     }
+
+    for( x = minX1; x < maxX1; x++ )
+    {
+      int u = prowit1[x];
+      int ul = x > 0 ? (u + prowit1[x-1])/2 : u;
+      int ur = x < width-1 ? (u + prowit1[x+1])/2 : u;
+      int u0 = std::min(ul, ur); u0 = std::min(u0, u);
+      int u1 = std::max(ul, ur); u1 = std::max(u1, u);
+
+      for( int d = minD; d < maxD; d++ )
+      {
+        int v = prowit2[width-x-1 + d];
+        int v0 = buffit[width-x-1 + d];
+        int v1 = buffit[width-x-1 + d + width2];
+        int c0 = std::max(0, u - v1); c0 = std::max(c0, v0 - u);
+        int c1 = std::max(0, v - u1); c1 = std::max(c1, u0 - v);
+
+        costit[x*D + d] = static_cast<short>(cost[x*D+d] + (std::min(c0, c1) >> diff_scale));
+      }
+    }
+  }
 }
 
-static void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image disp1, const semiGlobalBMParams & params, std::vector<CostType> & buffer)
+void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image & disp1, const semiGlobalBMParams & params, std::vector<PxlType> & buffer)
 {
   const int ALIGN = 16;
   const int DISP_SHIFT = DISPARITY_SHIFT;
@@ -115,30 +116,30 @@ static void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, 
   int uniquenessRatio = params.uniquenessRatio >= 0 ? params.uniquenessRatio : 10;
   int disp12MaxDiff = params.disp12MaxDiff > 0 ? params.disp12MaxDiff : 1;
   int P1 = params.P1 > 0 ? params.P1 : 2, P2 = std::max(params.P2 > 0 ? params.P2 : 5, P1+1);
-  int k, width = disp1.cols, height = disp1.rows;
+  int k, width = disp1.getWidth(), height = disp1.getHeight();
   int minX1 = std::max(maxD, 0), maxX1 = width + std::min(minD, 0);
   int D = maxD - minD, width1 = maxX1 - minX1;
   int INVALID_DISP = minD - 1, INVALID_DISP_SCALED = INVALID_DISP*DISP_SCALE;
   int SW2 = sws.width/2, SH2 = sws.height/2;
-  bool fullDP = params.mode == StereoSGBM::MODE_HH;
+  bool fullDP = params.mode == semiGlobalBM::MODE_HH;
   int npasses = fullDP ? 2 : 1;
   const int TAB_OFS = 256*4, TAB_SIZE = 256 + TAB_OFS*2;
-  std::vector<pxlType> clipTab(TAB_SIZE);
+  std::vector<PxlType> clipTab(TAB_SIZE);
 
   //might be more easy to read to use auto clipTabit = clipTab.begin();
   //also might be in c++0x
   //for (decltype(l)::iterator it = l.begin(), end = l.end(); it != end; ++it)
   //being l a predeclared STL style  container such as a list
-  std::vector<pxlType>::iterator clipTabit;
+  std::vector<PxlType>::iterator clipTabit;
 
   for( clipTabit = clipTab.begin(); clipTabit != clipTab.end(); ++clipTabit)
-    *clipTabit = static_cast<pxlType> (std::min(std::max(k - TAB_OFS, -ftzero), ftzero) + ftzero);
+    *clipTabit = static_cast<PxlType> (std::min(std::max(k - TAB_OFS, -ftzero), ftzero) + ftzero);
 
   if( minX1 >= maxX1 )
   {
     //if the disparity is invalid it return a single pixel image
     disp1.setWidth(1); disp1.setHeight(1);disp1.setChannels(4);disp1.setBitDepth(8);
-    disp1.getData().getVector().assign(disp1.getWidth()*disp1.getHeight()*disp1.getChannels()*disp1.getBitDepth()/8);
+    disp1.getData().getVector().assign(disp1.getWidth()*disp1.getHeight()*disp1.getChannels()*disp1.getBitDepth()/8, INVALID_DISP_SCALED);
     return;
   }
   //Check the value of Disparity D
@@ -174,10 +175,10 @@ static void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, 
   // these buffers will be separated in types.
   // Buffer size is nonoptimized
 
-  buffer.assign(totalBufSize);
+  buffer.assign(totalBufSize,1);
    //NON ALIGNED
    //TODO:ALIGN THE BUFFER FOR VECTORIZATION
-  decltype(buffer)::iterator Cbufit = buffer.begin();
+  decltype(buffer*)::iterator Cbufit = buffer.begin();
   decltype(buffer)::iterator Sbufit = Cbufit + CSBufSize;
   decltype(buffer)::iterator hsumBufit = Sbufit + CSBufSize;
   decltype(buffer)::iterator pixDiffit = hsumBufit + costBufSize*hsumBufNRows;
@@ -231,7 +232,7 @@ static void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, 
     for( int y = y1; y != y2; y += dy )
     {
       int x, d;
-      decltype(disp1)::iterator disp1ptr = disp1.getIterator() + y * width;
+      decltype(disp1)::iterator disp1ptr = disp1.getData().getVector().begin() + y * width;
       decltype(buffer)::iterator C = Cbufit + (!fullDP ? 0 : y*costBufSize);
       decltype(buffer)::iterator S = Sbufit + (!fullDP ? 0 : y*costBufSize);
 
@@ -487,24 +488,28 @@ static void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, 
 }
 //copied as is from OpenCV
 void semiGlobalBM::compute()
-    {
-        CV_INSTRUMENT_REGION()
+{
+  /*CV_INSTRUMENT_REGION()*/
 
-        Mat left = leftarr.getMat(), right = rightarr.getMat();
-        CV_Assert( left.size() == right.size() && left.type() == right.type() &&
-                   left.depth() == CV_8U );
+  /*Mat left = leftarr.getMat(), right = rightarr.getMat();
+  CV_Assert( left.size() == right.size() && left.type() == right.type() &&
+             left.depth() == CV_8U );
 
-        disparr.create( left.size(), CV_16S );
-        Mat disp = disparr.getMat();
+  disparr.create( left.size(), CV_16S );
+  Mat disp = disparr.getMat();*/
 
-        if(params.mode==MODE_SGBM_3WAY)
-            computeDisparity3WaySGBM( left, right, disp, params, buffers, num_stripes );
-        else
-            computeDisparitySGBM( left, right, disp, params, buffer );
+  std::vector<unsigned char> buffer;
 
-        medianBlur(disp, disp, 3);
+/*if(params.mode==MODE_SGBM_3WAY)
+    computeDisparity3WaySGBM( left, right, disp, params, buffers, num_stripes );
+  else*/
+    disparitySGBM( _left, _right, _dispmap, _params, buffer );
 
-        if( params.speckleWindowSize > 0 )
-            filterSpeckles(disp, (params.minDisparity - 1)*StereoMatcher::DISP_SCALE, params.speckleWindowSize,
-                           StereoMatcher::DISP_SCALE*params.speckleRange, buffer);
+
+/*medianBlur(disp, disp, 3);*/
+/*
+  if( params.speckleWindowSize > 0 )
+    filterSpeckles(disp, (params.minDisparity - 1)*StereoMatcher::DISP_SCALE, params.speckleWindowSize,
+                     StereoMatcher::DISP_SCALE*params.speckleRange, buffer);
+*/
 }

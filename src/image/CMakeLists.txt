@@ -7,7 +7,7 @@ set(image_SRCS
 add_library(image STATIC
     ${image_SRCS}
 )
-#Specify libraries needed by imgpxl
+#Specify libraries needed by image
 target_link_libraries(image matrix)
 target_link_libraries(image lodepng)
 # Specify here the include directories exported
