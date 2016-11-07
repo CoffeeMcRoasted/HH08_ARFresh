@@ -8,12 +8,18 @@
 
 #include "image.h"
 #include <climits>
+#include "saturatecast.h"
 
 typedef unsigned char PxlType;
 typedef short CostType;
 typedef short DispType;
 
 //Parameter Structure as used by the original OpenCV version without mode selection
+enum Mode{
+  MODE_SGBM = 1,
+  MODE_HH = 2
+};
+enum { NR = 16, NR2 = NR/2 };
 
 struct semiGlobalBMParams
 {
@@ -27,7 +33,7 @@ struct semiGlobalBMParams
         uniquenessRatio = 0;
         speckleWindowSize = 0;
         speckleRange = 0;
-        mode = MODE_SGBM;
+        mode = Mode::MODE_SGBM;
     }
 
     semiGlobalBMParams( int _minDisparity, int _numDisparities, int _SADWindowSize,
@@ -70,20 +76,18 @@ enum  	{
 };
 
 class semiGlobalBM{
+public:
   semiGlobalBM(){};
   semiGlobalBM(const semiGlobalBMParams & params, const image & left, const image & right, image & dispmap,std::vector<CostType> & buffer);
   ~semiGlobalBM(){};
 
-  enum Mode{
-    MODE_SGBM = 1,
-    MODE_HH = 2
-  };
 
-  void outDispMap(const char* Outfile);
+
+  void outDispMap(const char* Outfile){_dispmap.outputImagePNG(Outfile);}
   void compute();
 
-  void disparitySGBM(const image & img1, const image & img2, image & disp1, const semiGlobalBMParams & params, std::vector<PxlType> & buffer );
-  void pxlCostBT(const image & img1, const image & img2, int row, int minD, int maxD, std::vector<CostType> & cost,std::vector<PxlType> & buffer, const std::vector<PxlType> & lookupTab,int tabOfs);
+  void disparitySGBM(const image & img1, const image & img2, image & disp1, const semiGlobalBMParams & params, std::vector<CostType> & buffer );
+  void pxlCostBT(const image & img1, const image & img2, int row, int minD, int maxD, std::vector<CostType>::iterator & cost,std::vector<PxlType>::iterator & buffer, const std::vector<PxlType>::iterator & lookupTab,int tabOfs, int ftzero);
   inline void getImagePNGRight(const char* infile){_right.getImagePNG(infile);}
   inline void getImagePNGLeft(const char* infile){_left.getImagePNG(infile);}
 
@@ -92,7 +96,7 @@ private:
   image _left;
   image _right;
   image _dispmap;
-  matrix<unsigned char> _buffer;
+  std::vector<CostType> _buffer;
 };
 
 /*!

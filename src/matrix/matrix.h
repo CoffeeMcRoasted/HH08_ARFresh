@@ -41,9 +41,10 @@ public:
     const int getCols() const {return _cols;}
     const int getRows()const {return _rows;}
     const std::vector<T>& getVector() const {return _vctr;}
+    std::vector<T>& getVector(){return _vctr;}
     typename std::vector<T>::iterator& getIterator() const{return _ivctr;};
-    const T* getDataPtr() const {return _data.data();}
-    T* getDataPtr() {return _data.data();}
+    const T* getDataPtr() const {return _vctr.data();}
+    T* getDataPtr() {return _vctr.data();}
 
 
 

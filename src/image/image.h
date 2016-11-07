@@ -44,6 +44,7 @@ public:
   inline const unsigned int getChannels() const{return _channels;}
   inline const unsigned int getBitDepth() const{return _bitdepth;}
   inline const matrix<unsigned char>& getData() const{return _data;}
+  inline matrix<unsigned char>& getData(){return _data;}
 
   //value setting. Always resizes after setting
 

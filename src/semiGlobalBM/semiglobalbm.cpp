@@ -1,6 +1,15 @@
 #include "semiglobalbm.h"
 
-void semiGlobalBM::pxlCostBT(const image & img1, const image & img2, int row, int minD, int maxD, std::vector<CostType> & cost, std::vector<PxlType> & buffer, const std::vector<PxlType> & lookupTab,int tabOfs)
+semiGlobalBM::semiGlobalBM(const semiGlobalBMParams & params, const image & left, const image & right, image & dispmap,std::vector<CostType> & buffer){
+  _params = params;
+  _left = left;
+  _right = right;
+  _dispmap = dispmap;
+  _buffer = buffer;
+}
+
+
+void semiGlobalBM::pxlCostBT(const image & img1, const image & img2, int row, int minD, int maxD, std::vector<CostType>::iterator & cost, std::vector<PxlType>::iterator & buffer, const std::vector<PxlType>::iterator & lookupTab,int tabOfs, int ftzero)
 {
   int x,c, width = img1.getWidth(), channels = img1.getChannels();
   int minX1 = std::max(maxD, 0), maxX1 = width + std::min(minD, 0);
@@ -10,12 +19,12 @@ void semiGlobalBM::pxlCostBT(const image & img1, const image & img2, int row, in
   //iterators preparation
   std::vector<PxlType>::const_iterator rowit1 = img1.getData().getVector().cbegin() + row*width*channels;
   std::vector<PxlType>::const_iterator rowit2 = img2.getData().getVector().cbegin() + row*width*channels;
-  std::vector<PxlType>::iterator prowit1 = buffer.begin() + width2*2;
+  std::vector<PxlType>::iterator prowit1 = buffer + width2*2;
   std::vector<PxlType>::iterator prowit2 = prowit1 + width*channels*2;
-  std::vector<PxlType>::iterator buffit = buffer.begin();
-  std::vector<CostType>::iterator costit = cost.begin();
+  std::vector<PxlType>::iterator buffit = buffer;
+  std::vector<CostType>::iterator costit = cost;
 
-  std::vector<PxlType>::const_iterator tabit = lookupTab.begin() + tabOfs;
+  std::vector<PxlType>::const_iterator tabit = lookupTab + tabOfs;
 
   for(c = 0; c<channels*2; c++)
   {
@@ -57,7 +66,8 @@ void semiGlobalBM::pxlCostBT(const image & img1, const image & img2, int row, in
     }
   }
 
-  cost.resize(width1*D, 0);
+  //cost.resize(width1*D, 0);
+  for(int i = 0; i<width1*D; i++) cost[i] = 0;
   //simplfy costs within the lookupTab
   buffit -= minX2;
   costit -= minX1*D + minD;
@@ -102,7 +112,7 @@ void semiGlobalBM::pxlCostBT(const image & img1, const image & img2, int row, in
   }
 }
 
-void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image & disp1, const semiGlobalBMParams & params, std::vector<PxlType> & buffer)
+void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image & disp1, const semiGlobalBMParams & params, std::vector<CostType> & buffer)
 {
   const int ALIGN = 16;
   const int DISP_SHIFT = DISPARITY_SHIFT;
@@ -121,7 +131,7 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
   int D = maxD - minD, width1 = maxX1 - minX1;
   int INVALID_DISP = minD - 1, INVALID_DISP_SCALED = INVALID_DISP*DISP_SCALE;
   int SW2 = sws.width/2, SH2 = sws.height/2;
-  bool fullDP = params.mode == semiGlobalBM::MODE_HH;
+  bool fullDP = params.mode == Mode::MODE_HH;
   int npasses = fullDP ? 2 : 1;
   const int TAB_OFS = 256*4, TAB_SIZE = 256 + TAB_OFS*2;
   std::vector<PxlType> clipTab(TAB_SIZE);
@@ -139,7 +149,7 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
   {
     //if the disparity is invalid it return a single pixel image
     disp1.setWidth(1); disp1.setHeight(1);disp1.setChannels(4);disp1.setBitDepth(8);
-    disp1.getData().getVector().assign(disp1.getWidth()*disp1.getHeight()*disp1.getChannels()*disp1.getBitDepth()/8, INVALID_DISP_SCALED);
+    disp1.getData().getVector().assign(static_cast<std::size_t>(disp1.getWidth()*disp1.getHeight()*disp1.getChannels()*disp1.getBitDepth()/8), INVALID_DISP_SCALED);
     return;
   }
   //Check the value of Disparity D
@@ -168,8 +178,8 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
   std::size_t totalBufSize = (LrSize + minLrSize)*NLR*sizeof(CostType) + // minLr[] and Lr[]
   costBufSize*(hsumBufNRows + 1)*sizeof(CostType) + // hsumBuf, pixdiff
   CSBufSize*2*sizeof(CostType) + // C, S
-  width*16*img1.channels()*sizeof(pxlType) + // temp buffer for computing per-pixel cost
-  width*(sizeof(CostType) + sizeof(pxlType)) + 1024; // disp2cost + disp2
+  width*16*img1.getChannels()*sizeof(PxlType) + // temp buffer for computing per-pixel cost
+  width*(sizeof(CostType) + sizeof(PxlType)) + 1024; // disp2cost + disp2
 
   // whereas OpenCV uses a single buffer, in pursuit of comprehensibility
   // these buffers will be separated in types.
@@ -178,20 +188,20 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
   buffer.assign(totalBufSize,1);
    //NON ALIGNED
    //TODO:ALIGN THE BUFFER FOR VECTORIZATION
-  decltype(buffer*)::iterator Cbufit = buffer.begin();
-  decltype(buffer)::iterator Sbufit = Cbufit + CSBufSize;
-  decltype(buffer)::iterator hsumBufit = Sbufit + CSBufSize;
-  decltype(buffer)::iterator pixDiffit = hsumBufit + costBufSize*hsumBufNRows;
+  std::vector<CostType>::iterator Cbufit = buffer.begin();
+  std::vector<CostType>::iterator Sbufit = Cbufit + CSBufSize;
+  std::vector<CostType>::iterator hsumBufit = Sbufit + CSBufSize;
+  std::vector<CostType>::iterator pixDiffit = hsumBufit + costBufSize*hsumBufNRows;
 
-  decltype(buffer)::iterator disp2costit = pixDiffit +costBufSize+(LrSize + minLrSize)*NLR;
+  std::vector<CostType>::iterator disp2costit = pixDiffit +costBufSize+(LrSize + minLrSize)*NLR;
   //this buffer is from disptype. Beign disptype and cost type both shorts, i include it in the same buffer
-  decltype(buffer)::iterator disp2ptrit = disp2costit + width;
+  std::vector<CostType>::iterator disp2ptrit = disp2costit + width;
 
   std::vector<PxlType> tmpbuf(width);
   decltype(tmpbuf)::iterator tmpbufit = tmpbuf.begin();
 
   for( k = 0; k < width1*D; k++ )
-    Cbufit[k] = static_cast<CostType> P2;
+    Cbufit[k] = static_cast<CostType> (P2);
   //The usage of the value P2 saves calculations withn the loop
 
   for( int pass = 1; pass <= npasses; pass++ )
@@ -210,7 +220,8 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
     }
 
     //originally vector<CostType*>, this buffers collect memory directions
-    std::vector<std::vector<CostType>::iterator> Lr(NLR,0), minLr(NLR,0);
+    std::vector<CostType> cost;
+    std::vector<std::vector<CostType>::iterator> Lr(NLR/*,0*/), minLr(NLR/*,0*/);
     decltype(Lr)::iterator Lrit = Lr.begin();
     decltype(minLr)::iterator minLrit = minLr.begin();
 
@@ -221,20 +232,21 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
       // we need to shift Lr[k] pointers by 1, to give the space for d=-1.
       // however, then the alignment will be imperfect, i.e. bad for SSE,
       // thus we shift the pointers by 8 (8*sizeof(short) == 16 - ideal alignment)
+      // pixdiffit is pxltype and lrit is costtype
       Lrit[k] = pixDiffit + costBufSize + LrSize*k + NRD2*LrBorder + 8;
       //memset( Lr[k] - LrBorder*NRD2 - 8, 0, LrSize*sizeof(CostType) );
       //We do the same usign the iterator continuously
       fill(Lrit[k] - LrBorder*NRD2 - 8, Lrit[k] - LrBorder*NRD2 - 8 + LrSize, 0);
-      minLrit[k] = pixDiff + costBufSize + LrSize*NLR + minLrSize*k + NR2*LrBorder;
+      minLrit[k] = pixDiffit + costBufSize + LrSize*NLR + minLrSize*k + NR2*LrBorder;
       //memset( minLr[k] - LrBorder*NR2, 0, minLrSize*sizeof(CostType) );
       fill(minLrit[k] - LrBorder*NR2, minLrit[k] - LrBorder*NR2 + minLrSize, 0);
     }
     for( int y = y1; y != y2; y += dy )
     {
       int x, d;
-      decltype(disp1)::iterator disp1ptr = disp1.getData().getVector().begin() + y * width;
-      decltype(buffer)::iterator C = Cbufit + (!fullDP ? 0 : y*costBufSize);
-      decltype(buffer)::iterator S = Sbufit + (!fullDP ? 0 : y*costBufSize);
+      std::vector<PxlType>::iterator disp1ptr = disp1.getData().getVector().begin() + y * width;
+      std::vector<CostType>::iterator C = Cbufit + (!fullDP ? 0 : y*costBufSize);
+      std::vector<CostType>::iterator S = Sbufit + (!fullDP ? 0 : y*costBufSize);
 
       if( pass == 1 ) // compute C on the first pass, and reuse it on the second pass, if any.
       {
@@ -242,11 +254,11 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
 
         for( k = dy1; k <= dy2; k++ )
         {
-          decltype(buffer)::iterator hsumAddit = hsumBufit + (std::min(k, height-1) % hsumBufNRows)*costBufSize;
+          std::vector<CostType>::iterator hsumAddit = hsumBufit + (std::min(k, height-1) % hsumBufNRows)*costBufSize;
 
           if( k < height )
           {
-            calcPixelCostBT( img1, img2, k, minD, maxD, pixDiff, tempBuf, clipTab, TAB_OFS, ftzero );
+            pxlCostBT( img1, img2, k, minD, maxD, pixDiffit, tmpbufit, clipTabit, TAB_OFS, ftzero );
 
             //memset(hsumAdd, 0, D*sizeof(CostType));
             fill(hsumAddit, hsumAddit+D, 0);
@@ -254,18 +266,18 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
             {
               int scale = x == 0 ? SW2 + 1 : 1;
               for( d = 0; d < D; d++ )
-                hsumAddit[d] = static_cast<CostType>(hsumAddit[d] + pixDiff[x + d]*scale);
+                hsumAddit[d] = static_cast<CostType>(hsumAddit[d] + pixDiffit[x + d]*scale);
             }
 
             if( y > 0 )
             {
-              const std::vector<CostType>::iterator hsumSub = hsumBuf + (std::max(y - SH2 - 1, 0) % hsumBufNRows)*costBufSize;
+              const std::vector<CostType>::iterator hsumSub = hsumBufit + (std::max(y - SH2 - 1, 0) % hsumBufNRows)*costBufSize;
               const std::vector<CostType>::iterator Cprev = !fullDP || y == 0 ? C : C - costBufSize;
 
               for( x = D; x < width1*D; x += D )
               {
-                const std::vector<CostType>::iterator pixAdd = pixDiff + std::min(x + SW2*D, (width1-1)*D);
-                const std::vector<CostType>::iterator pixSub = pixDiff + std::max(x - (SW2+1)*D, 0);
+                const std::vector<CostType>::iterator pixAdd = pixDiffit + std::min(x + SW2*D, (width1-1)*D);
+                const std::vector<CostType>::iterator pixSub = pixDiffit + std::max(x - (SW2+1)*D, 0);
                 {
                   for( d = 0; d < D; d++ )
                   {
@@ -279,11 +291,11 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
             {
               for( x = D; x < width1*D; x += D )
               {
-                const std::vector<CostType>::iterator pixAdd = pixDiff + std::min(x + SW2*D, (width1-1)*D);
-                const std::vector<CostType>::iterator pixSub = pixDiff + std::max(x - (SW2+1)*D, 0);
+                const std::vector<CostType>::iterator pixAdd = pixDiffit + std::min(x + SW2*D, (width1-1)*D);
+                const std::vector<CostType>::iterator pixSub = pixDiffit + std::max(x - (SW2+1)*D, 0);
 
                 for( d = 0; d < D; d++ )
-                  hsumAddit[x + d] = static_cast<CostType>(hsumAdd[x - D + d] + pixAdd[d] - pixSub[d]);
+                  hsumAddit[x + d] = static_cast<CostType>(hsumAddit[x - D + d] + pixAdd[d] - pixSub[d]);
               }
             }
           }
@@ -309,7 +321,7 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
       fill(Lrit[0] - NRD2*LrBorder - 8, Lrit[0] - NRD2*LrBorder - 8 + NRD2*LrBorder, 0);
       fill(Lrit[0] + width1*NRD2 - 8, Lrit[0] + width1*NRD2 - 8 + NRD2*LrBorder, 0);
       fill(minLrit[0] - NR2*LrBorder, minLrit[0] - NR2*LrBorder + NR2*LrBorder, 0);
-      fill(minLrit[0] + width1*NR2),minLrit[0] + width1*NR2 + NR2*LrBorder, 0);
+      fill(minLrit[0] + width1*NR2,minLrit[0] + width1*NR2 + NR2*LrBorder, 0);
       /*
       [formula 13 in the paper]
       compute L_r(p, d) = C(p, d) +
@@ -383,7 +395,7 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
       {
         for( x = 0; x < width; x++ )
         {
-          disp1ptr[x] = disp2ptr[x] = static_cast<DispType>(INVALID_DISP_SCALED);
+          disp1ptr[x] = disp2ptrit[x] = static_cast<DispType>(INVALID_DISP_SCALED);
           disp2costit[x] = MAX_COST;
         }
 
@@ -398,9 +410,9 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
 
             int minL0 = MAX_COST;
             int delta0 = minLrit[0][xm + NR2] + P2;
-            CostType* Lr_p0 = Lrit[0] + xd + NRD2;
+            std::vector<CostType>::iterator Lr_p0 = Lrit[0] + xd + NRD2;
             Lr_p0[-1] = Lr_p0[D] = MAX_COST;
-            CostType* Lr_p = Lrit[0] + xd;
+            std::vector<CostType>::iterator Lr_p = Lrit[0] + xd;
 
             const std::vector<CostType>::iterator Cp = C + x*D;
             {
@@ -408,7 +420,7 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
               {
                 int L0 = Cp[d] + std::min((int)Lr_p0[d], std::min(Lr_p0[d-1] + P1, std::min(Lr_p0[d+1] + P1, delta0))) - delta0;
 
-                Lr_p[d] = static_cast<CostType>L0;
+                Lr_p[d] = static_cast<CostType>(L0);
                 minL0 = std::min(minL0, L0);
 
                 int Sval = Sp[d] = saturate_cast<CostType>(Sp[d] + L0);
@@ -418,7 +430,7 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
                   bestDisp = d;
                 }
               }
-              minLrit[0][xm] = static_cast<CostType>minL0;
+              minLrit[0][xm] = static_cast<CostType>(minL0);
             }
           }
           else
@@ -444,10 +456,10 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
             continue;
           d = bestDisp;
           int _x2 = x + minX1 - d - minD;
-          if( disp2cost[_x2] > minS )
+          if( disp2costit[_x2] > minS )
           {
-            disp2cost[_x2] = static_cast<CostType>(minS);
-            disp2ptr[_x2] = static_cast<DispType>(d + minD);
+            disp2costit[_x2] = static_cast<CostType>(minS);
+            disp2ptrit[_x2] = static_cast<DispType>(d + minD);
           }
 
           if( 0 < d && d < D-1 )
@@ -474,14 +486,14 @@ void semiGlobalBM::disparitySGBM(const image & img1, const image & img2, image &
           int _d = d1 >> DISP_SHIFT;
           int d_ = (d1 + DISP_SCALE-1) >> DISP_SHIFT;
           int _x = x - _d, x_ = x - d_;
-          if( 0 <= _x && _x < width && disp2ptr[_x] >= minD && std::abs(disp2ptr[_x] - _d) > disp12MaxDiff &&
-            0 <= x_ && x_ < width && disp2ptr[x_] >= minD && std::abs(disp2ptr[x_] - d_) > disp12MaxDiff )
+          if( 0 <= _x && _x < width && disp2ptrit[_x] >= minD && std::abs(disp2ptrit[_x] - _d) > disp12MaxDiff &&
+            0 <= x_ && x_ < width && disp2ptrit[x_] >= minD && std::abs(disp2ptrit[x_] - d_) > disp12MaxDiff )
             disp1ptr[x] = static_cast<DispType>(INVALID_DISP_SCALED);
         }
       }
 
       // now shift the cyclic buffers
-      std::swap( Lrit[t0], Lrit[1] );
+      std::swap( Lrit[0], Lrit[1] );
       std::swap( minLrit[0], minLrit[1] );
     }
   }
@@ -498,12 +510,12 @@ void semiGlobalBM::compute()
   disparr.create( left.size(), CV_16S );
   Mat disp = disparr.getMat();*/
 
-  std::vector<unsigned char> buffer;
+  std::vector<CostType> buffer;
 
 /*if(params.mode==MODE_SGBM_3WAY)
     computeDisparity3WaySGBM( left, right, disp, params, buffers, num_stripes );
   else*/
-    disparitySGBM( _left, _right, _dispmap, _params, buffer );
+  semiGlobalBM::disparitySGBM( _left, _right, _dispmap, _params, buffer);
 
 
 /*medianBlur(disp, disp, 3);*/

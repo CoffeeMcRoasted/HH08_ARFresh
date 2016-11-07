@@ -1,6 +1,7 @@
 set(sgbm_SRCS
     semiglobalbm.h
     semiglobalbm.cpp
+    saturatecast.h
 )
 
 # Declare the library

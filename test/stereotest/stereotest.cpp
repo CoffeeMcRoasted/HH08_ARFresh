@@ -17,12 +17,15 @@ TEST_F(stereotest, StereoTest){
   image right("right1.png");
   image dispmap(left.getHeight(),left.getWidth());
   dispmap.setChannels(1); dispmap.setBitDepth(16);
-  semiGlobalBMParams params(-39,144,7);
-  std::vector<CostType> buffer_;
-  semiGlobalBM sgbm(params, left, right, dispmap, buffer)
+  semiGlobalBMParams params(-39,144,7,0,0,0,0,0,0,0,MODE_SGBM);
+  std::vector<CostType> buffer;
+  semiGlobalBM* sgbm = new semiGlobalBM(params, left, right, dispmap, buffer);
 
-  void compute();
-  void outDispMap("dispmap.png")
+  sgbm->compute();
+  sgbm->outDispMap("dispmap.png");
+
+  delete sgbm;
+
   EXPECT_EQ(left.getWidth(),dispmap.getWidth());
   EXPECT_EQ(left.getHeight(), dispmap.getHeight());
 }
